@@ -10,19 +10,19 @@
 template<typename T>
 class Matrix {
 public:
-    // Конструктор по умолчанию — пустая матрица
+
     Matrix() : rows_(0), cols_(0), data_() {} 
 
-    // Квадратная матрица размером size x size, заполненная по умолчанию 0
+
     Matrix(size_t size)
         : rows_(size), cols_(size), data_(size, std::vector<T>(size, T())) {}
 
-    // Для записи
+
     T& operator()(size_t row, size_t col) {
         return data_[row][col];
     }
 
-    // Для чтения
+
     const T& operator()(size_t row, size_t col) const {
         return data_[row][col];
     }
@@ -31,15 +31,15 @@ public:
     size_t getCols() const { return cols_; }
 
 private:
-    size_t rows_, cols_;                        // Размеры матрицы
-    std::vector<std::vector<T>> data_;          // Данные матрицы
+    size_t rows_, cols_;                        
+    std::vector<std::vector<T>> data_;         
 };
 
 // Граф, который используется для хранения расстояний между городами 
 template<typename T>
 class Graph {
 public:
-    // Конструктор, создающий граф с size вершинами (матрица смежности)
+   
     Graph(size_t size)
         : size_(size), data_(size, std::vector<T>(size, T{})) {}
 
@@ -56,20 +56,21 @@ public:
     size_t getVertexesCount() const { return size_; }
     
     // Возвращает вес графа, обычно он всегда 1, но можно изменять
-    double getGraphWeight() const { return 1.0; }
+    double getGraphWeight() const { return 1.0; } //Используется только для вычисления kQ_ = 0.015 * graph.getGraphWeight()
+    //В реальных задачах вес графа должен вычисляться как суммарная длина всех рёбер или среднее значение расстояний для корректной настройки параметров феромона.
 
-    // Проверка на пустоту
+
     bool IsEmpty() const { return size_ == 0; }
 
 private:
-    size_t size_;                                // Количество вершин
-    std::vector<std::vector<T>> data_;           // Матрица смежности
+    size_t size_;                                
+    std::vector<std::vector<T>> data_;           
 };
 
 //  Путь муравья, маршрут и длина 
 struct AntPath {
-    std::vector<size_t> vertices; // Последователность городов
-    double distance = 0;          // Длинна пути в целом
+    std::vector<size_t> vertices; 
+    double distance = 0;          
 };
 
 // Структура муравья 
@@ -77,19 +78,19 @@ struct Ant {
     Ant(size_t start)
         : start_location(start), current_location(start), can_continue(true) {}
 
-    size_t start_location;              // Начало
-    size_t current_location;            // Текущая точка 
-    bool can_continue;                  // Может ли двигаться дальше
-    AntPath path;                       // Путь, по которому идёт муравей
-    std::vector<size_t> visited;        // Уже посещённые вершины
+    size_t start_location;              
+    size_t current_location;            
+    bool can_continue;                  
+    AntPath path;                       
+    std::vector<size_t> visited;        
 
-    // Генерация случайного числа от 0 до 1
+    
     double getRandomChoice();
 
-    // Получение соседей текущей вершины
+   
     std::vector<size_t> getNeighborVertexes(const Graph<double> &g);
 
-    // Совершение одного шага
+    
     void MakeChoice(const Graph<double> &g, const Matrix<double> &p, double alpha, double beta);
 };
 
@@ -98,7 +99,6 @@ class AntColonyOptimization {
 public:
     explicit AntColonyOptimization(const Graph<double> &graph);
 
-    // Решение задачи коммивояжёра
     AntPath SolveSalesmansProblem();
 
 private:
@@ -108,13 +108,13 @@ private:
     double kQ_ = 5.0;                    // Константа для обновления феромона
     const double kEvaporation_ = 0.2;    // Коэффициент испарения феромона
 
-    Graph<double> graph_;                // Исходный граф
-    Matrix<double> pheromone_;          // Матрица феромонов
+    Graph<double> graph_;               
+    Matrix<double> pheromone_;         
 
-    std::vector<Ant> ants_;             // Все муравьи
+    std::vector<Ant> ants_;             
 
-    void CreateAnts();                  // Создание муравьёв
-    void UpdateGlobalPheromone(const Matrix<double> &local_pheromone_update); // Обновляем ферромоны
+    void CreateAnts();                  
+    void UpdateGlobalPheromone(const Matrix<double> &local_pheromone_update); 
 };
 
 //  Конструктор алгоритма муравьиной колонии 
@@ -123,7 +123,7 @@ AntColonyOptimization::AntColonyOptimization(const Graph<double> &graph)
 
     const size_t kVertexesCount = graph_.getVertexesCount();
 
-    // Инициализация феромонов
+    
     for (size_t row = 0; row != kVertexesCount; ++row)
         for (size_t col = 0; col != kVertexesCount; ++col)
             if (row != col) pheromone_(row, col) = kPheromone0_;
@@ -144,7 +144,7 @@ void AntColonyOptimization::UpdateGlobalPheromone(const Matrix<double> &lpu) {
             // Испарение и добавление нового феромона
             pheromone_(from, to) = (1 - kEvaporation_) * pheromone_(from, to) + lpu(from, to);
             if (pheromone_(from, to) < 0.01 && from != to)
-                pheromone_(from, to) = 0.01; // Устанавливается минимальное значение ферромона
+                pheromone_(from, to) = 0.01; 
         }
     }
 }
@@ -177,7 +177,6 @@ void Ant::MakeChoice(const Graph<double> &g, const Matrix<double> &p, double alp
 
     std::vector<size_t> neighbor_vertexes = getNeighborVertexes(g);
 
-    // Если нет соседей тогда возвращаемся в начало
     if (neighbor_vertexes.empty()) {
         can_continue = false;
         if (g(current_location, start_location) != 0) {
@@ -190,11 +189,10 @@ void Ant::MakeChoice(const Graph<double> &g, const Matrix<double> &p, double alp
     std::vector<double> wish;
     double summary_wish = 0.0f;
 
-    // Расчёт желания муравья пойти в каждый соседний город
     for (auto v : neighbor_vertexes) {
-        double t = p(current_location, v); // феромон
-        double w = g(current_location, v); // расстояние
-        double n = 1 / w;                  // привлекательность
+        double t = p(current_location, v); 
+        double w = g(current_location, v); 
+        double n = 1 / w;                  
         wish.push_back(std::pow(t, alpha) * std::pow(n, beta));
         summary_wish += wish.back();
     }
@@ -236,7 +234,7 @@ AntPath AntColonyOptimization::SolveSalesmansProblem() {
     size_t counter = 0;
 
     AntPath path;
-    path.distance = std::numeric_limits<double>::infinity(); // Изначально бесконечная длина
+    path.distance = std::numeric_limits<double>::infinity(); 
 
     while (counter++ != kMaxIterationsWithoutImprovement) {
         Matrix<double> local_pheromone_update(kVertexesCount);
@@ -244,7 +242,7 @@ AntPath AntColonyOptimization::SolveSalesmansProblem() {
             for (size_t j = 0; j < kVertexesCount; ++j)
                 local_pheromone_update(i, j) = 0.0;
 
-        CreateAnts(); // создаём муравьёв
+        CreateAnts(); 
 
         for (auto &ant : ants_) {
             while (ant.can_continue)
@@ -270,7 +268,7 @@ AntPath AntColonyOptimization::SolveSalesmansProblem() {
 //  Точка входа в программу 
 int main() {
 
-    Graph<double> g(5); // Задание графа из 5 вершин
+    Graph<double> g(5); 
 
     // Задаём матрицу расстояний (симметричный граф)
     double dist[5][5] = {
@@ -286,10 +284,9 @@ int main() {
         for (size_t j = 0; j < 5; ++j)
             g(i, j) = dist[i][j];
 
-    AntColonyOptimization aco(g);                // Создаём оптимизатор
-    AntPath best = aco.SolveSalesmansProblem();  // Запускаем алгоритм
+    AntColonyOptimization aco(g);                
+    AntPath best = aco.SolveSalesmansProblem();  
 
-    // Выводим лучший найденный путь
     printf("Best path distance: %f\n", best.distance);
     printf("Path: ");
     for (size_t v : best.vertices) {
